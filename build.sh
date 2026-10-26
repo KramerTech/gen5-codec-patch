@@ -68,6 +68,7 @@ for l in "${LIBS[@]}"; do
 done
 mkdir -p "$PKG/notices"
 python3 -I "$HERE/tools/extract_notices.py" "$CACHE/NOTICE.txt" "$PKG/notices/THIRD_PARTY_NOTICES.txt" "${LIBS[@]}" libvpx
+cp "$HERE/LICENSE" "$PKG/notices/LICENSE"
 
 # 3. Codec probe
 work=$(mktemp -d)

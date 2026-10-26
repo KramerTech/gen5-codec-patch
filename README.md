@@ -108,6 +108,10 @@ To regenerate the test clips (needs ffmpeg): `tools/make-clips.sh`.
 | `tools/extract_ext4.py`, `tools/extract_notices.py` | build helpers |
 | `tests/` | simulator, scenarios, fixtures |
 
+## License
+
+The scripts, tools and tests in this repo are MIT-licensed (see [`LICENSE`](LICENSE)). The decoder libraries bundled into the release zip keep their own licenses, below.
+
 ## Third-party code
 
 The release zip includes three unmodified binaries from Google's Android SDK system image (API 19, armeabi-v7a, r05):
