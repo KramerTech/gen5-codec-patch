@@ -52,12 +52,12 @@ Launching the package from NEMESIS Manager (Packages → Video Codec Fix → Lau
 
 ## Install
 
-Download `media.codecs-<version>.zip` from Releases. Then either:
-- **USB:** install it with NEMESIS's USB installer (`type=install`, see the NEMESIS docs).
-- **ADB:**
+Each release has two zips:
+- **USB:** download `media.codecs-<version>-usb.zip` and extract it onto the root of a FAT32 or exFAT drive, so the drive holds `NEMESIS.data` and `packages/media.codecs.zip`. Keep only one NEMESIS package on the drive. With the head unit fully booted, plug the drive in and confirm the install prompt. If the package is already installed, NEMESIS asks you to uninstall it first.
+- **ADB:** use `media.codecs-<version>.zip`, the package itself. Don't extract this one onto a USB drive: NEMESIS will report "Invalid package descriptor".
   ```sh
-  adb push media.codecs-2.0.1.zip /data/local/tmp/
-  adb shell '/system/xbin/nemesis install --update /data/local/tmp/media.codecs-2.0.1.zip'
+  adb push media.codecs-2.0.2.zip /data/local/tmp/
+  adb shell '/system/xbin/nemesis install --update /data/local/tmp/media.codecs-2.0.2.zip'
   ```
 
 No reboot is needed. Restart any video app that was open, since apps read the codec list when they start.
@@ -71,7 +71,7 @@ Manager → Packages → Video Codec Fix → Uninstall, or `nemesis uninstall me
 ## Build
 
 ```sh
-./build.sh       # → dist/media.codecs-<version>.zip and .sha256
+./build.sh       # → dist/media.codecs-<version>.zip, -usb.zip and .sha256s
 tests/run.sh     # install/uninstall scenarios against simulated units
 ```
 
@@ -79,7 +79,7 @@ Needs `curl`, `python3`, `javac`, `zip`, and the Android SDK's build-tools (`d8`
 1. downloads Google's SDK system image `armeabi-v7a-19_r05.zip` (~160 MB, cached in `.cache/`, SHA-1 checked against Google's repository manifest),
 2. extracts the decoders with a pure-Python ext4 reader and checks them against pinned SHA-256 hashes,
 3. copies their license notices from the image's `NOTICE.txt`,
-4. compiles the probe, and zips `package/`.
+4. compiles the probe, zips `package/`, and wraps that zip in a USB bundle.
 
 CI ([`.github/workflows/build.yml`](.github/workflows/build.yml)) builds and runs the tests under mksh, Android's shell. Pushing a tag `v<version>` that matches `package/NEMESIS.data` publishes the zip as a release.
 

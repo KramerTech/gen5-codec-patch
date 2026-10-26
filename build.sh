@@ -80,18 +80,28 @@ javac -nowarn -source 8 -target 8 -bootclasspath "$ANDROID_JAR" -d "$work/classe
 rm -rf "$PKG/probe" && mkdir -p "$PKG/probe"
 (cd "$work" && zip -q -X "$PKG/probe/probe.jar" classes.dex)
 
-# 4. Package zip (everything under package/, NEMESIS.data at the root)
+# 4. Package zip (everything under package/, NEMESIS.data at the root), for
+#    `nemesis install`, and a USB bundle wrapping it. The USB handler only reads
+#    a `type=` descriptor at the drive root, so extracting the package itself
+#    onto a drive gives "Invalid package descriptor". The bundle has the same
+#    layout as NEMESIS's own release zips: extract it onto the drive root.
 version=$(grep -m1 '^version=' "$PKG/NEMESIS.data" | cut -d= -f2)
 out=$DIST/media.codecs-$version.zip
-rm -f "$out"
-python3 -I - "$PKG" "$out" <<'EOF'
+usb=$DIST/media.codecs-$version-usb.zip
+rm -f "$out" "$usb"
+python3 -I - "$PKG" "$out" "$usb" <<'EOF'
 import sys, zipfile
 from pathlib import Path
-src, out = Path(sys.argv[1]), Path(sys.argv[2])
+src, out, usb = Path(sys.argv[1]), Path(sys.argv[2]), Path(sys.argv[3])
 with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
     for p in sorted(src.rglob("*")):
         if p.is_file() and not p.name.startswith((".", "._")):
             z.write(p, p.relative_to(src).as_posix())
+with zipfile.ZipFile(usb, "w", zipfile.ZIP_DEFLATED) as z:
+    z.writestr("NEMESIS.data", "[nemesis]\nversion=1.0\ntype=install\npath=packages/media.codecs.zip\n")
+    z.write(out, "packages/media.codecs.zip")
 EOF
-(cd "$DIST" && sha256 "$(basename "$out")" | sed "s|\$|  $(basename "$out")|" > "$(basename "$out").sha256")
-echo "built $out ($(wc -c < "$out" | tr -d ' ') bytes)"
+for f in "$out" "$usb"; do
+    (cd "$DIST" && sha256 "$(basename "$f")" | sed "s|\$|  $(basename "$f")|" > "$(basename "$f").sha256")
+    echo "built $f ($(wc -c < "$f" | tr -d ' ') bytes)"
+done

@@ -57,6 +57,13 @@ system_restore_mount() {
 
 run_probe() {
     mkdir -p "$STATE/dalvik/dalvik-cache" || return 1
+    # app_process needs init's BOOTCLASSPATH. An ADB shell has it, but processes
+    # started by svcmgr (the USB handler, which runs USB installs) may not.
+    if [ -z "$BOOTCLASSPATH" ] && [ -r /init.environ.rc ]; then
+        while read _cmd _name _value; do
+            [ "$_cmd" = export ] && export "$_name=$_value"
+        done < /init.environ.rc
+    fi
     ANDROID_DATA=$STATE/dalvik CLASSPATH=$PKGDIR/probe/probe.jar \
         app_process /system/bin CodecProbe "$@" 2>/dev/null
 }
